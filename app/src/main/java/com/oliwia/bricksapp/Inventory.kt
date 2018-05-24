@@ -15,6 +15,8 @@ class Inventory{
     var lastAccessed:Date = Date()
     //lastAccessed.time
 
+    var parts: MutableList<InventoryPart> = mutableListOf<InventoryPart>()
+
     constructor(name: String) {
         this.name = name
     }
