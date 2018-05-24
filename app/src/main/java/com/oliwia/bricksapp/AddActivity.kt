@@ -11,22 +11,18 @@ import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_add.*
 import kotlinx.android.synthetic.main.app_bar_main.*
 
-class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+class AddActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-
-    val REQUEST_CODE = 10000
-    val REQUEST_CODE_SETTINGS = 10001
-    var prefix  = "http://fcds.cs.put.poznan.pl/MyWeb/BL/"
-    var extension = ".xml"
-
+    var msg = "oli"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_add)
         setSupportActionBar(toolbar)
+
 
         val toggle = ActionBarDrawerToggle(
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
@@ -34,6 +30,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
+
+
+        val extras = intent.extras ?: return
+        msg = extras.getString("Parametr")
     }
 
     override fun onBackPressed() {
@@ -55,63 +55,26 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         when (item.itemId) {
-            R.id.action_settings -> {
-                startSettingsActivity()
-                return true
-            }
+            R.id.action_settings -> return true
             else -> return super.onOptionsItemSelected(item)
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if((requestCode == REQUEST_CODE)
-                && (resultCode == Activity.RESULT_OK)){
-            if(data != null){
-                if(data.hasExtra("colorInt")){
-                    var colorInt =  data.extras.getString("colorInt").toInt()
-                }
-                if(data.hasExtra("precision")){
-                    var precision = data.extras.getString("precision").toInt()
-                }
-
-            }
-        } else if((requestCode == REQUEST_CODE_SETTINGS)
-                && (resultCode == Activity.RESULT_OK)){
-            if(data != null) {
-                if (data.hasExtra("prefix")) {
-                    prefix = data.extras.getString("prefix")
-                }
-                if (data.hasExtra("extension")) {
-                    extension = data.extras.getString("extension")
-                }
-            }
-            nav_view.setCheckedItem(R.id.nav_myProjects)
-
-        }
-    }
-
-    fun startSettingsActivity(){
-        val i = Intent(this, SettingsActivity::class.java)
-        i.putExtra("prefix", prefix)
-        i.putExtra("extension", extension)
-        startActivityForResult(i, REQUEST_CODE_SETTINGS)
-    }
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         // Handle navigation view item clicks here.
         when (item.itemId) {
             R.id.nav_add -> {
                 // Handle the camera action
-                Toast.makeText(this, "Oliwia Masian\n127324", Toast.LENGTH_LONG).show()
-                val i = Intent(this, AddActivity::class.java)
-                i.putExtra("Parametr", "Twoje dane")
-                startActivityForResult(i, REQUEST_CODE)
+                Toast.makeText(this, "From Add" + " " + msg, Toast.LENGTH_LONG).show()
+
+
 
             }
             R.id.nav_myProjects-> {
 
             }
             R.id.nav_settings-> {
-                startSettingsActivity()
+
             }
             R.id.nav_save-> {
 
@@ -123,5 +86,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         drawer_layout.closeDrawer(GravityCompat.START)
         return true
+    }
+
+    override fun finish() {
+        val data = Intent()
+        data.putExtra("colorInt", "8999")
+        data.putExtra("precision", "17")
+        setResult(Activity.RESULT_OK, data)
+        super.finish()
     }
 }
