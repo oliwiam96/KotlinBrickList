@@ -47,6 +47,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         nav_view.setNavigationItemSelectedListener(this)
 
+        val dbHandler = MyDBHandler(this)
+        dbHandler.createDataBase()
+        dbHandler.openDataBase()
+        dbHandler.exampleSelect()
+        dbHandler.close()
+
+
     }
 
     override fun onBackPressed() {
@@ -176,7 +183,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             } else{
                 helloView.text = "SUCCESS"
                 // TODO add a new inventory
-                // f.ex. inventory.generate()
+                // e.g. inventory.generate()
                 // add(inventory)
             }
         }
