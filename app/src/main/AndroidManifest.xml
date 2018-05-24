@@ -29,6 +29,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.oliwia.bricksapp.MainActivity" />
         </activity>
+        <activity android:name=".NewProjectActivity"></activity>
     </application>
 
 </manifest>

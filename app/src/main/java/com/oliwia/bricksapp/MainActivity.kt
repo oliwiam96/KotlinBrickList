@@ -13,12 +13,15 @@ import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.android.synthetic.main.content_main.*
+import java.util.*
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
 
     val REQUEST_CODE = 10000
     val REQUEST_CODE_SETTINGS = 10001
+    val REQUEST_CODE_NEW_PROJECT = 10002
     var prefix  = "http://fcds.cs.put.poznan.pl/MyWeb/BL/"
     var extension = ".xml"
 
@@ -85,12 +88,34 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     extension = data.extras.getString("extension")
                 }
             }
-            nav_view.setCheckedItem(R.id.nav_myProjects)
 
+        } else if((requestCode == REQUEST_CODE_NEW_PROJECT)
+                && (resultCode == Activity.RESULT_OK)){
+            if(data != null) {
+                if (data.hasExtra("projectName") && data.hasExtra("extension")) {
+                    var projectName = data.extras.getString("projectName")
+                    var inventoryNumber = data.extras.getString("inventoryNumber")
+                    var inventory = Inventory(projectName)
+                    createNewProject(inventory, inventoryNumber)
+                }
+            }
         }
+        nav_view.setCheckedItem(R.id.nav_myProjects)
     }
 
-    fun startSettingsActivity(){
+    private fun createNewProject(inventory: Inventory, inventoryNumber: String){
+
+        //TODO
+
+    }
+
+    private fun startNewProjectActivity(){
+        val i = Intent(this, NewProjectActivity::class.java)
+        startActivityForResult(i, REQUEST_CODE_NEW_PROJECT)
+    }
+
+
+    private fun startSettingsActivity(){
         val i = Intent(this, SettingsActivity::class.java)
         i.putExtra("prefix", prefix)
         i.putExtra("extension", extension)
@@ -100,11 +125,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         // Handle navigation view item clicks here.
         when (item.itemId) {
             R.id.nav_add -> {
-                // Handle the camera action
+               /*
                 Toast.makeText(this, "Oliwia Masian\n127324", Toast.LENGTH_LONG).show()
                 val i = Intent(this, AddActivity::class.java)
                 i.putExtra("Parametr", "Twoje dane")
-                startActivityForResult(i, REQUEST_CODE)
+                startActivityForResult(i, REQUEST_CODE)*/
+                startNewProjectActivity()
 
             }
             R.id.nav_myProjects-> {
