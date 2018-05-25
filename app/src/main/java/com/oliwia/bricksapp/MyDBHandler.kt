@@ -218,6 +218,11 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         addParts(inventory)
     }
 
+    fun deleteInventoryWithParts(inventory: Inventory){
+        myDataBase!!.delete("INVENTORIESPARTS", "INVENTORYID = ?", arrayOf(inventory.id.toString()))
+        myDataBase!!.delete("INVENTORY", "_ID = ?", arrayOf(inventory.id.toString()))
+    }
+
 
 
 
