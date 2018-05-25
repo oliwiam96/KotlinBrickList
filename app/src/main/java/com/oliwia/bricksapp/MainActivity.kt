@@ -22,6 +22,7 @@ import java.net.URL
 import javax.xml.parsers.DocumentBuilderFactory
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
+import android.widget.ListView
 import java.io.IOException
 import java.io.InputStream
 
@@ -48,6 +49,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
         nav_view.setNavigationItemSelectedListener(this)
+
+        var l = ArrayList<String>()
+        l.add("asdds")
+        l.add("dd")
+        var myAdapter = MyAdapter(l, this)
+        val lView = findViewById<ListView>(R.id.myListView)
+        lView.adapter = myAdapter
+
+        var x= 4*4
 
     }
 
@@ -149,9 +159,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 dbHandler.createDataBaseIfDoesNotExist()
                 dbHandler.openDataBase()
                 var list = dbHandler.getInventoriesList()
-                helloView.text = list.size.toString()
+                //helloView.text = list.size.toString()
 
-                imageImage.setImageBitmap(list[0].parts[2].image)
+                //imageImage.setImageBitmap(list[0].parts[2].image)
                 dbHandler.close()
 
             }
@@ -228,9 +238,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             super.onPostExecute(result)
             if (failed) {
                 Toast.makeText(this@MainActivity, "Inventory with a given number not found", Toast.LENGTH_LONG).show()
-                helloView.text = "FAIL"
+                //helloView.text = "FAIL"
             } else {
-                helloView.text = "SUCCESS"
+                //helloView.text = "SUCCESS"
                 val dbHandler = MyDBHandler(this@MainActivity)
                 dbHandler.createDataBaseIfDoesNotExist()
                 dbHandler.openDataBase()
