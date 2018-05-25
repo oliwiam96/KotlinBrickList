@@ -20,6 +20,11 @@ import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.net.URL
 import javax.xml.parsers.DocumentBuilderFactory
+import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import java.io.IOException
+import java.io.InputStream
+
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -158,10 +163,55 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
+
+    private inner class ImageDownloader : AsyncTask<String, Int, String>() {
+        val dbHandler = MyDBHandler(this@MainActivity)
+        val noImageURLString = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaopXXLbLGXDFcnzgeoPisO5gB98_YORuu3YqA8vYeryZ0-2Nyfw"
+        var inventory:Inventory? = null
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+            dbHandler.openDataBase()
+        }
+
+        override fun onPostExecute(result: String?) {
+            super.onPostExecute(result)
+            dbHandler.saveImagesForInventory(inventory!!)
+            dbHandler.close()
+        }
+
+        override fun doInBackground(vararg p0: String?): String {
+            var inventoryID = p0[0]
+            inventory = dbHandler.getInventory(inventoryID!!.toLong())
+            for (inventoryPart in inventory!!.parts) {
+                setImageForPart(inventoryPart)
+            }
+            return "success"
+        }
+
+        private fun setImageForPart(inventoryPart: InventoryPart) {
+            var failed = false
+            var bitmap: Bitmap? = null
+            try {
+                bitmap = BitmapFactory.decodeStream(URL(inventoryPart.URLLego).content as InputStream)
+            } catch (ex: IOException) {
+                try {
+                    bitmap = BitmapFactory.decodeStream(URL(inventoryPart.URLBrickLink).content as InputStream)
+                }catch (ex2: IOException){
+                    failed = true
+                }
+            }
+            if(!failed){
+                inventoryPart.image = bitmap
+            }
+
+        }
+    }
+
     private inner class XMLDownloader : AsyncTask<String, Int, String>() {
 
         var failed = false
-        var inventory:Inventory? = null
+        var inventory: Inventory? = null
 
         override fun onPreExecute() {
             super.onPreExecute()
@@ -169,20 +219,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
-            if(failed){
+            if (failed) {
                 Toast.makeText(this@MainActivity, "Inventory with a given number not found", Toast.LENGTH_LONG).show()
                 helloView.text = "FAIL"
-            } else{
+            } else {
                 helloView.text = "SUCCESS"
-                // TODO add a new inventory
                 val dbHandler = MyDBHandler(this@MainActivity)
                 dbHandler.createDataBaseIfDoesNotExist()
                 dbHandler.openDataBase()
                 dbHandler.addInventoryWithParts(inventory!!)
                 dbHandler.close()
-
-                // e.g. inventory.generate()
-                // add(inventory)
+                ImageDownloader().execute(inventory!!.id.toString())
             }
         }
 
@@ -236,7 +283,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                         }
                     }
                 }
-            } catch (ex: java.io.FileNotFoundException) {
+            } catch (ex: IOException) {
                 failed = true
             }
             return "success"

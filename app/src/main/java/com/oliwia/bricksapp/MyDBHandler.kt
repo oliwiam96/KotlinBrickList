@@ -6,12 +6,13 @@ import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
-import android.support.annotation.IntegerRes
 import java.io.FileOutputStream
 import java.io.IOException
 import java.sql.SQLException
-import android.provider.SyncStateContract.Helpers.update
 import java.util.*
+import android.graphics.Bitmap.CompressFormat
+import android.graphics.Bitmap
+import java.io.ByteArrayOutputStream
 
 
 /**
@@ -123,11 +124,9 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
     }
 
-
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
 
     }
-
 
     fun exampleSelect() {
         val query = "SELECT NAME FROM PARTS WHERE CODE = 3001"
@@ -173,7 +172,13 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         inventoryPart.extra = if (inventoryPart.EXTRA == "Y") 1 else 0
     }
 
-    private fun addInventory(inventory: Inventory){
+    private fun setFieldsForPartsFromXMLFields(inventory: Inventory) {
+        for (inventoryPart in inventory.parts) {
+            setFieldsForPartFromXMLFields(inventoryPart)
+        }
+    }
+
+    private fun addInventory(inventory: Inventory) {
         val values = ContentValues()
         values.put("NAME", inventory.name)
         values.put("ACTIVE", inventory.active)
@@ -182,13 +187,13 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         inventory.id = id
     }
 
-    private fun setInventoryIdForParts(inventory: Inventory){
-        for(inventoryPart in inventory.parts){
+    private fun setInventoryIdForParts(inventory: Inventory) {
+        for (inventoryPart in inventory.parts) {
             inventoryPart.inventoryID = inventory.id
         }
     }
 
-    private fun addPart(inventoryPart: InventoryPart){
+    private fun addPart(inventoryPart: InventoryPart) {
         val values = ContentValues()
         values.put("INVENTORYID", inventoryPart.inventoryID)
         values.put("TYPEID", inventoryPart.typeID)
@@ -201,26 +206,64 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         inventoryPart.id = id
     }
 
-    private fun addParts(inventory: Inventory){
-        for(inventoryPart in inventory.parts){
+    private fun addParts(inventory: Inventory) {
+        for (inventoryPart in inventory.parts) {
             addPart(inventoryPart)
         }
     }
 
-    fun setXMLFields(inventory: Inventory){
-        for(inventoryPart in inventory.parts){
-            setFieldsForPartFromXMLFields(inventoryPart)
+    private fun setDescFieldsForPart(inventoryPart: InventoryPart) {
+        // set COLOR and colorName
+        val query = "SELECT CODE, IFNULL(NAMEPL, NAME) FROM COLORS WHERE _ID = ?"
+        var cursor = myDataBase!!.rawQuery(query, arrayOf(inventoryPart.colorID.toString()))
+        if (cursor.moveToFirst()) {
+            inventoryPart.COLOR = cursor.getInt(0)
+            inventoryPart.colorName = cursor.getString(1)
+        }
+        cursor.close()
+
+
+        // set ITEMTYPE and itemTypeName
+        val query2 = "SELECT CODE, IFNULL(NAMEPL, NAME) FROM ITEMTYPES WHERE _ID = ?"
+        var cursor2 = myDataBase!!.rawQuery(query2, arrayOf(inventoryPart.typeID.toString()))
+        if (cursor2.moveToFirst()) {
+            inventoryPart.ITEMTYPE = cursor2.getString(0)
+            inventoryPart.itemTypeName = cursor2.getString(1)
+        }
+        cursor2.close()
+
+        // set ITEMID and partName
+        val query3 = "SELECT CODE, IFNULL(NAMEPL, NAME) FROM PARTS WHERE _ID = ?"
+        var cursor3 = myDataBase!!.rawQuery(query3, arrayOf(inventoryPart.itemID.toString()))
+        if (cursor3.moveToFirst()) {
+            inventoryPart.ITEMID = cursor3.getString(0)
+            inventoryPart.partName = cursor3.getString(1)
+        }
+        cursor3.close()
+
+        // set codesCode if possible
+        // TODO
+
+        // set image
+        // TODO
+
+    }
+
+    private fun setDescFieldsForParts(inventory: Inventory) {
+        for (inventoryPart in inventory.parts) {
+            setDescFieldsForPart(inventoryPart)
         }
     }
 
-    fun addInventoryWithParts(inventory: Inventory){
+    fun addInventoryWithParts(inventory: Inventory) {
         addInventory(inventory)
         setInventoryIdForParts(inventory)
-        setXMLFields(inventory)
+        setFieldsForPartsFromXMLFields(inventory)
+        setDescFieldsForParts(inventory)
         addParts(inventory)
     }
 
-    fun deleteInventoryWithParts(inventory: Inventory){
+    fun deleteInventoryWithParts(inventory: Inventory) {
         myDataBase!!.delete("INVENTORIESPARTS", "INVENTORYID = ?", arrayOf(inventory.id.toString()))
         myDataBase!!.delete("INVENTORY", "_ID = ?", arrayOf(inventory.id.toString()))
     }
@@ -228,7 +271,7 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
     /**
      * Updates ACTIVE and LASTASCESSED fields in INVENTORIES table
      */
-    private fun updateInventory(inventory: Inventory){
+    private fun updateInventory(inventory: Inventory) {
         val values = ContentValues()
         values.put("ACTIVE", inventory.active)
         values.put("LASTACCCESSED", inventory.lastAccessed.time)
@@ -238,25 +281,24 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
     /**
      * Updates QUANTITYINSTORE field in INVENTORIESPARTS table
      */
-
-    private fun updatePart(inventoryPart: InventoryPart){
+    private fun updatePart(inventoryPart: InventoryPart) {
         val values = ContentValues()
         values.put("QUANTITYINSTORE", inventoryPart.quantityInStore)
         myDataBase!!.update("INVENTORIESPARTS", values, "_ID = ?", arrayOf(inventoryPart.id.toString()))
     }
 
-    private fun updateParts(inventory: Inventory){
-        for(inventoryPart in inventory.parts){
+    private fun updateParts(inventory: Inventory) {
+        for (inventoryPart in inventory.parts) {
             updatePart(inventoryPart)
         }
     }
-    fun updateInventoryWithParts(inventory: Inventory){
+
+    fun updateInventoryWithParts(inventory: Inventory) {
         updateInventory(inventory)
         updateParts(inventory)
     }
 
-    // TODO desc fields
-    private fun setPartsForInventory(inventory: Inventory){
+    private fun setPartsForInventory(inventory: Inventory) {
         val query = "SELECT _ID, INVENTORYID, TYPEID, ITEMID, QUANTITYINSET," +
                 "QUANTITYINSTORE, COLORID, EXTRA " +
                 "FROM INVENTORIESPARTS " +
@@ -275,6 +317,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
                 inventoryPart.colorID = cursor.getInt(6)
                 inventoryPart.extra = cursor.getInt(7)
 
+                setDescFieldsForPart(inventoryPart)
+
                 inventory.parts.add(inventoryPart)
                 cursor.moveToNext()
             }
@@ -282,7 +326,7 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         cursor.close()
     }
 
-    fun getInventoriesFromDatabase(): MutableList<Inventory> {
+    fun getInventoriesList(): MutableList<Inventory> {
         var inventories: MutableList<Inventory> = mutableListOf<Inventory>()
         val query = "SELECT _ID, NAME, ACTIVE, LASTACCESSED FROM INVENTORIES"
         var cursor = myDataBase!!.rawQuery(query, null)
@@ -303,6 +347,45 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
         cursor.close()
         return inventories
+    }
+
+    fun getInventory(id: Long): Inventory {
+
+        val query = "SELECT _ID, NAME, ACTIVE, LASTACCESSED FROM INVENTORIES WHERE _ID = ?"
+        var cursor = myDataBase!!.rawQuery(query, arrayOf(id.toString()))
+        var inventory = Inventory()
+
+        if (cursor.moveToFirst()) {
+            inventory.id = cursor.getLong(0)
+            inventory.name = cursor.getString(1)
+            inventory.active = cursor.getInt(2)
+            inventory.lastAccessed = Date(cursor.getLong(3))
+
+            setPartsForInventory(inventory)
+        }
+
+        cursor.close()
+        return inventory
+    }
+
+    private fun getBitmapAsByteArray(bitmap: Bitmap): ByteArray {
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(CompressFormat.PNG, 0, outputStream)
+        return outputStream.toByteArray()
+    }
+
+    private fun saveImageForPart(inventoryPart: InventoryPart) {
+        if (inventoryPart.image != null) {
+            val values = ContentValues()
+            values.put("IMAGE", getBitmapAsByteArray(inventoryPart.image!!))
+            myDataBase!!.update("INVENTORIESPARTS", values, "_ID = ?", arrayOf(inventoryPart.id.toString()))
+        }
+    }
+
+    fun saveImagesForInventory(inventory: Inventory) {
+        for (inventoryPart in inventory.parts) {
+            saveImageForPart(inventoryPart)
+        }
     }
 
 
