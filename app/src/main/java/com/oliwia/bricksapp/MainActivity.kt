@@ -195,7 +195,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 xmlDoc.normalize()
 
                 val items: NodeList = xmlDoc.getElementsByTagName("ITEM")
-                inventory = Inventory(newInventoryName)
+                inventory = Inventory()
+                inventory!!.name = newInventoryName
                 for (i in 0..items.length - 1) {
                     val itemNode: Node = items.item(i)
                     if (itemNode.nodeType == Node.ELEMENT_NODE) {

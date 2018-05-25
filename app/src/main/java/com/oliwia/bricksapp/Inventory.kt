@@ -1,6 +1,5 @@
 package com.oliwia.bricksapp
 
-import java.time.LocalDateTime
 import java.util.*
 
 /**
@@ -17,7 +16,4 @@ class Inventory{
 
     var parts: MutableList<InventoryPart> = mutableListOf<InventoryPart>()
 
-    constructor(name: String) {
-        this.name = name
-    }
 }

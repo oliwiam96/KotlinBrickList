@@ -11,7 +11,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.sql.SQLException
 import android.provider.SyncStateContract.Helpers.update
-
+import java.util.*
 
 
 /**
@@ -131,13 +131,12 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
     fun exampleSelect() {
         val query = "SELECT NAME FROM PARTS WHERE CODE = 3001"
-        val db = this.writableDatabase
         var cursor = myDataBase!!.rawQuery(query, null)
         var name = ""
         if (cursor.moveToFirst()) {
             name = cursor.getString(0)
-            cursor.close()
         }
+        cursor.close()
     }
 
     private fun setFieldsForPartFromXMLFields(inventoryPart: InventoryPart) {
@@ -147,8 +146,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         var typeID = 0
         if (cursorTYPEID.moveToFirst()) {
             typeID = cursorTYPEID.getInt(0)
-            cursorTYPEID.close()
         }
+        cursorTYPEID.close()
         inventoryPart.typeID = typeID
 
         val queryITEMID = "SELECT _ID FROM PARTS WHERE CODE = ?"
@@ -156,8 +155,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         var itemID = 0
         if (cursorITEMID.moveToFirst()) {
             itemID = cursorITEMID.getInt(0)
-            cursorITEMID.close()
         }
+        cursorITEMID.close()
         inventoryPart.itemID = itemID
 
         inventoryPart.quantityInSet = inventoryPart.QTY
@@ -167,8 +166,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         var colorID = 0
         if (cursorCOLOR.moveToFirst()) {
             colorID = cursorCOLOR.getInt(0)
-            cursorCOLOR.close()
         }
+        cursorCOLOR.close()
         inventoryPart.colorID = colorID
 
         inventoryPart.extra = if (inventoryPart.EXTRA == "Y") 1 else 0
@@ -256,6 +255,55 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         updateParts(inventory)
     }
 
+    // TODO desc fields
+    private fun setPartsForInventory(inventory: Inventory){
+        val query = "SELECT _ID, INVENTORYID, TYPEID, ITEMID, QUANTITYINSET," +
+                "QUANTITYINSTORE, COLORID, EXTRA " +
+                "FROM INVENTORIESPARTS " +
+                "WHERE INVENTORYID = ?"
+        var cursor = myDataBase!!.rawQuery(query, arrayOf(inventory.id.toString()))
+
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast) {
+                var inventoryPart = InventoryPart()
+                inventoryPart.id = cursor.getLong(0)
+                inventoryPart.inventoryID = cursor.getLong(1)  // == inventory.id
+                inventoryPart.typeID = cursor.getInt(2)
+                inventoryPart.itemID = cursor.getInt(3)
+                inventoryPart.quantityInSet = cursor.getInt(4)
+                inventoryPart.quantityInStore = cursor.getInt(5)
+                inventoryPart.colorID = cursor.getInt(6)
+                inventoryPart.extra = cursor.getInt(7)
+
+                inventory.parts.add(inventoryPart)
+                cursor.moveToNext()
+            }
+        }
+        cursor.close()
+    }
+
+    fun getInventoriesFromDatabase(): MutableList<Inventory> {
+        var inventories: MutableList<Inventory> = mutableListOf<Inventory>()
+        val query = "SELECT _ID, NAME, ACTIVE, LASTACCESSED FROM INVENTORIES"
+        var cursor = myDataBase!!.rawQuery(query, null)
+
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast) {
+                var inventory = Inventory()
+                inventory.id = cursor.getLong(0)
+                inventory.name = cursor.getString(1)
+                inventory.active = cursor.getInt(2)
+                inventory.lastAccessed = Date(cursor.getLong(3))
+
+                setPartsForInventory(inventory)
+                inventories.add(inventory)
+                cursor.moveToNext()
+            }
+        }
+
+        cursor.close()
+        return inventories
+    }
 
 
 }
