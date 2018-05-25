@@ -11,8 +11,8 @@ class InventoryPart{
     var EXTRA = ""
 
 
-    var id:Int = 0
-    var inventoryID:Int = 0
+    var id:Long = 0
+    var inventoryID:Long = 0
     var typeID:Int = 0
     var itemID: Int = 0
     var quantityInSet: Int = 0

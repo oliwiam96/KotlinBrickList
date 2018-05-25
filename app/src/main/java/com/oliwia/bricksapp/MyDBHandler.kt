@@ -1,7 +1,6 @@
 package com.oliwia.bricksapp
 
 
-
 import android.content.Context
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
@@ -20,27 +19,11 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
     private var myDataBase: SQLiteDatabase? = null
 
-    /**
-     * Creates a empty database on the system and rewrites it with your own database.
-     */
-    @Throws(IOException::class)
-    fun createDataBase() {
 
-        val dbExist = checkDataBase()
-
-        if (dbExist) {
-            //do nothing - database already exist
-        } else {
-            //By calling this method and empty database will be created into the default system path
-            //of your application so we are gonna be able to overwrite that database with our database.
-            this.readableDatabase
-            try {
-                copyDataBase()
-            } catch (e: IOException) {
-                throw Error("Error copying database")
-            }
-        }
-
+    companion object {
+        //The Android's default system path of your application database.
+        private val DB_PATH = "/data/data/com.oliwia.bricksapp/databases/"
+        private val DB_NAME = "BrickList.db"
     }
 
     /**
@@ -49,7 +32,6 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
      */
     private fun checkDataBase(): Boolean {
         var checkDB: SQLiteDatabase? = null
-
         try {
             val myPath = DB_PATH + DB_NAME
             checkDB = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY)
@@ -57,17 +39,18 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         } catch (e: SQLiteException) {
             //database does't exist yet.
         }
-        if (checkDB != null) {
+        return if (checkDB != null) {
             checkDB.close()
+            true
+        } else {
+            false
         }
-
-        return if (checkDB != null) true else false
     }
 
     /**
      * Copies your database from your local assets-folder to the just created empty database in the
      * system folder, from where it can be accessed and handled.
-     * This is done by transfering bytestream.
+     * This is done by transferring bytestream.
      */
     @Throws(IOException::class)
     private fun copyDataBase() {
@@ -85,7 +68,7 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         val buffer = ByteArray(1024)
         var length: Int
         length = myInput.read(buffer)
-        while (length  > 0) {
+        while (length > 0) {
             myOutput.write(buffer, 0, length)
             length = myInput.read(buffer)
         }
@@ -97,22 +80,40 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
     }
 
+    /**
+     * Creates a empty database on the system and rewrites it with your own database.
+     */
+    @Throws(IOException::class)
+    fun createDataBaseIfDoesNotExist() {
+
+        val dbExist = checkDataBase()
+
+        if (dbExist) {
+            //do nothing - database already exist
+        } else {
+            //By calling this method and empty database will be created into the default system path
+            //of your application so we are gonna be able to overwrite that database with our database.
+            this.readableDatabase
+            try {
+                copyDataBase()
+            } catch (e: IOException) {
+                throw Error("Error copying database")
+            }
+        }
+    }
+
     @Throws(SQLException::class)
     fun openDataBase() {
-
         //Open the database
         val myPath = DB_PATH + DB_NAME
-        myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READONLY)
+        myDataBase = SQLiteDatabase.openDatabase(myPath, null, SQLiteDatabase.OPEN_READWRITE)
 
     }
 
     @Synchronized override fun close() {
-
         if (myDataBase != null)
             myDataBase!!.close()
-
         super.close()
-
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -125,27 +126,99 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
     }
 
 
-    fun exampleSelect(){
-        val query = "SELECT Name FROM PARTS WHERE Code = 3001"
+    fun exampleSelect() {
+        val query = "SELECT NAME FROM PARTS WHERE CODE = 3001"
         val db = this.writableDatabase
-        val cursor = db.rawQuery(query, null)
+        var cursor = myDataBase!!.rawQuery(query, null)
         var name = ""
-        if(cursor.moveToFirst()){
+        if (cursor.moveToFirst()) {
             name = cursor.getString(0)
             cursor.close()
         }
-
     }
 
-    companion object {
+    private fun setFieldsForPartFromXMLFields(inventoryPart: InventoryPart) {
 
-        //The Android's default system path of your application database.
-        private val DB_PATH = "/data/data/com.oliwia.bricksapp/databases/"
-        private val DB_NAME = "BrickList.db"
+        val queryTYPEID = "SELECT _ID FROM ITEMTYPES WHERE CODE = \"${inventoryPart.ITEMTYPE}\""
+        var cursorTYPEID = myDataBase!!.rawQuery(queryTYPEID, null)
+        var typeID = 0
+        if (cursorTYPEID.moveToFirst()) {
+            typeID = cursorTYPEID.getInt(0)
+            cursorTYPEID.close()
+        }
+        inventoryPart.typeID = typeID
+
+        val queryITEMID = "SELECT _ID FROM PARTS WHERE CODE = \"${inventoryPart.ITEMID}\""
+        var cursorITEMID = myDataBase!!.rawQuery(queryITEMID, null)
+        var itemID = 0
+        if (cursorITEMID.moveToFirst()) {
+            itemID = cursorITEMID.getInt(0)
+            cursorITEMID.close()
+        }
+        inventoryPart.itemID = itemID
+
+        inventoryPart.quantityInSet = inventoryPart.QTY
+
+        val queryCOLOR = "SELECT _ID FROM COLORS WHERE CODE = ${inventoryPart.COLOR}"
+        var cursorCOLOR = myDataBase!!.rawQuery(queryCOLOR, null)
+        var colorID = 0
+        if (cursorCOLOR.moveToFirst()) {
+            colorID = cursorCOLOR.getInt(0)
+            cursorCOLOR.close()
+        }
+        inventoryPart.colorID = colorID
+
+        inventoryPart.extra = if (inventoryPart.EXTRA == "Y") 1 else 0
     }
 
-    // Add your public helper methods to access and get content from the database.
-    // You could return cursors by doing "return myDataBase.query(....)" so it'd be easy
-    // to you to create adapters for your views.
+    private fun addInventory(inventory: Inventory){
+        val values = ContentValues()
+        values.put("NAME", inventory.name)
+        values.put("ACTIVE", inventory.active)
+        values.put("LASTACCESSED", inventory.lastAccessed.time)
+        var id = myDataBase!!.insert("INVENTORIES", null, values)
+        inventory.id = id
+    }
+
+    private fun setInventoryIdForParts(inventory: Inventory){
+        for(inventoryPart in inventory.parts){
+            inventoryPart.inventoryID = inventory.id
+        }
+    }
+
+    private fun addPart(inventoryPart: InventoryPart){
+        val values = ContentValues()
+        values.put("INVENTORYID", inventoryPart.inventoryID)
+        values.put("TYPEID", inventoryPart.typeID)
+        values.put("ITEMID", inventoryPart.itemID)
+        values.put("QUANTITYINSET", inventoryPart.quantityInSet)
+        values.put("QUANTITYINSTORE", inventoryPart.quantityInStore)
+        values.put("COLORID", inventoryPart.colorID)
+        values.put("EXTRA", inventoryPart.extra)
+        var id = myDataBase!!.insert("INVENTORIESPARTS", null, values)
+        inventoryPart.id = id
+    }
+
+    private fun addParts(inventory: Inventory){
+        for(inventoryPart in inventory.parts){
+            addPart(inventoryPart)
+        }
+    }
+
+    fun setXMLFields(inventory: Inventory){
+        for(inventoryPart in inventory.parts){
+            setFieldsForPartFromXMLFields(inventoryPart)
+        }
+    }
+
+    fun addInventoryWithParts(inventory: Inventory){
+        addInventory(inventory)
+        setInventoryIdForParts(inventory)
+        setXMLFields(inventory)
+        addParts(inventory)
+    }
+
+
+
 
 }

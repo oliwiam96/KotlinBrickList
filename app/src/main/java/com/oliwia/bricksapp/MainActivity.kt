@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
@@ -20,7 +19,6 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.net.URL
-import java.util.*
 import javax.xml.parsers.DocumentBuilderFactory
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -46,12 +44,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
-
-        val dbHandler = MyDBHandler(this)
-        dbHandler.createDataBase()
-        dbHandler.openDataBase()
-        dbHandler.exampleSelect()
-        dbHandler.close()
 
 
     }
@@ -183,6 +175,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             } else{
                 helloView.text = "SUCCESS"
                 // TODO add a new inventory
+                val dbHandler = MyDBHandler(this@MainActivity)
+                dbHandler.createDataBaseIfDoesNotExist()
+                dbHandler.openDataBase()
+                dbHandler.addInventoryWithParts(inventory!!)
+                dbHandler.close()
+
                 // e.g. inventory.generate()
                 // add(inventory)
             }

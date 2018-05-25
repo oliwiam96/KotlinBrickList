@@ -9,9 +9,9 @@ import java.util.*
 
 class Inventory{
 
-    var id: Int = 0
+    var id: Long = 0
     var name: String = ""
-    var active: Boolean = true
+    var active: Int = 1
     var lastAccessed:Date = Date()
     //lastAccessed.time
 
