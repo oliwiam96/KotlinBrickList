@@ -47,9 +47,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
-
         nav_view.setNavigationItemSelectedListener(this)
-
 
     }
 
@@ -147,6 +145,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             }
             R.id.nav_myProjects -> {
+                val dbHandler = MyDBHandler(this@MainActivity)
+                dbHandler.createDataBaseIfDoesNotExist()
+                dbHandler.openDataBase()
+                var list = dbHandler.getInventoriesList()
+                helloView.text = list.size.toString()
+
+                imageImage.setImageBitmap(list[0].parts[2].image)
+                dbHandler.close()
+
             }
             R.id.nav_settings -> {
                 startSettingsActivity()
@@ -184,7 +191,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             var inventoryID = p0[0]
             inventory = dbHandler.getInventory(inventoryID!!.toLong())
             for (inventoryPart in inventory!!.parts) {
-                setImageForPart(inventoryPart)
+                if(!dbHandler.imageInDatabse(inventoryPart)){
+                    setImageForPart(inventoryPart)
+                }
+
             }
             return "success"
         }
@@ -192,14 +202,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         private fun setImageForPart(inventoryPart: InventoryPart) {
             var failed = false
             var bitmap: Bitmap? = null
+            var URLString = inventoryPart.getURLString()
             try {
-                bitmap = BitmapFactory.decodeStream(URL(inventoryPart.URLLego).content as InputStream)
+                bitmap = BitmapFactory.decodeStream(URL(URLString).content as InputStream)
             } catch (ex: IOException) {
-                try {
-                    bitmap = BitmapFactory.decodeStream(URL(inventoryPart.URLBrickLink).content as InputStream)
-                }catch (ex2: IOException){
                     failed = true
-                }
             }
             if(!failed){
                 inventoryPart.image = bitmap

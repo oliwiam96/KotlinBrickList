@@ -27,25 +27,18 @@ class InventoryPart {
     var colorName: String = ""
     var itemTypeName: String = ""
     var partName: String = ""
-    var codesCode:Int? = null
+    var codesCode: Int? = null
     var image: Bitmap? = null
 
-    var URLLego = ""
-        get() {
-            if(codesCode != null){
-                return "https://www.lego.com/service/bricks/5/2/" + codesCode.toString()
-            } else{
-                return ""
-            }
-        }
-
-    var URLBrickLink = ""
-        get() {
-            if(ITEMTYPE == "M"){
-                return "http://img.bricklink.com/MN/" + COLOR.toString() + "/" + ITEMID + ".png"
-            } else{
+    fun getURLString(): String {
+        if (codesCode != null) {
+            return "https://www.lego.com/service/bricks/5/2/" + codesCode.toString()
+        } else {
+            if (ITEMTYPE == "M") {
+                return "https://img.bricklink.com/ItemImage/MN/" + COLOR.toString() + "/" + ITEMID + ".png"
+            } else {
                 return "http://img.bricklink.com/P/" + COLOR.toString() + "/" + ITEMID + ".gif"
             }
         }
-
+    }
 }

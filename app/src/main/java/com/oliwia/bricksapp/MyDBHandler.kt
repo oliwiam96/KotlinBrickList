@@ -12,6 +12,7 @@ import java.sql.SQLException
 import java.util.*
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import java.io.ByteArrayOutputStream
 
 
@@ -154,6 +155,15 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         var itemID = 0
         if (cursorITEMID.moveToFirst()) {
             itemID = cursorITEMID.getInt(0)
+        } else {
+            // there wasn't such a row- now we insert it
+            val values = ContentValues()
+            values.put("TYPEID", inventoryPart.typeID)
+            values.put("CODE", inventoryPart.ITEMID)
+            values.put("NAME", "unknown")
+            values.put("CATEGORYID", 1)
+            var id = myDataBase!!.insert("PARTS", null, values)
+            itemID = id.toInt()
         }
         cursorITEMID.close()
         inventoryPart.itemID = itemID
@@ -242,12 +252,26 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         cursor3.close()
 
         // set codesCode if possible
-        // TODO
+        val query4 = "SELECT CODE FROM CODES WHERE ITEMID = ? AND COLORID = ?"
+        var cursor4 = myDataBase!!.rawQuery(query4, arrayOf(inventoryPart.itemID.toString(), inventoryPart.colorID.toString()))
+        if (cursor4.moveToFirst()) {
+            inventoryPart.codesCode = cursor4.getInt(0)
+        }
+        cursor4.close()
 
         // set image
-        // TODO
+        val query5 = "SELECT IMAGE FROM CODES WHERE ITEMID = ? AND COLORID = ?"
+        var cursor5 = myDataBase!!.rawQuery(query5, arrayOf(inventoryPart.itemID.toString(), inventoryPart.colorID.toString()))
+        if (cursor5.moveToFirst()) {
+            val imgByte = cursor5.getBlob(0)
+            if (imgByte != null) {
+                inventoryPart.image = BitmapFactory.decodeByteArray(imgByte, 0, imgByte.size)
+            }
+        }
+        cursor5.close()
 
     }
+
 
     private fun setDescFieldsForParts(inventory: Inventory) {
         for (inventoryPart in inventory.parts) {
@@ -374,11 +398,25 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         return outputStream.toByteArray()
     }
 
+
     private fun saveImageForPart(inventoryPart: InventoryPart) {
         if (inventoryPart.image != null) {
-            val values = ContentValues()
-            values.put("IMAGE", getBitmapAsByteArray(inventoryPart.image!!))
-            myDataBase!!.update("INVENTORIESPARTS", values, "_ID = ?", arrayOf(inventoryPart.id.toString()))
+            val query = "SELECT * FROM CODES WHERE ITEMID = ? AND COLORID = ?"
+            var cursor = myDataBase!!.rawQuery(query, arrayOf(inventoryPart.itemID.toString(), inventoryPart.colorID.toString()))
+            if (!cursor.moveToFirst()) {
+                val values = ContentValues()
+                values.put("ITEMID", inventoryPart.itemID)
+                values.put("COLORID", inventoryPart.colorID)
+                myDataBase!!.insert("CODES", null, values)
+            }
+            cursor.close()
+
+            if (!imageInDatabse(inventoryPart)) {
+                val values = ContentValues()
+                values.put("IMAGE", getBitmapAsByteArray(inventoryPart.image!!))
+                myDataBase!!.update("CODES", values, "ITEMID = ? AND COLORID = ?",
+                        arrayOf(inventoryPart.itemID.toString(), inventoryPart.colorID.toString()))
+            }
         }
     }
 
@@ -386,6 +424,18 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         for (inventoryPart in inventory.parts) {
             saveImageForPart(inventoryPart)
         }
+    }
+
+    fun imageInDatabse(inventoryPart: InventoryPart): Boolean {
+        val query = "SELECT IMAGE FROM CODES WHERE ITEMID = ? AND COLORID = ?"
+        var cursor = myDataBase!!.rawQuery(query, arrayOf(inventoryPart.itemID.toString(), inventoryPart.colorID.toString()))
+        var found = false
+        if (cursor.moveToFirst()) {
+            val imgByte = cursor.getBlob(0)
+            found = (imgByte != null)
+        }
+        cursor.close()
+        return found
     }
 
 
