@@ -10,6 +10,9 @@ import android.support.annotation.IntegerRes
 import java.io.FileOutputStream
 import java.io.IOException
 import java.sql.SQLException
+import android.provider.SyncStateContract.Helpers.update
+
+
 
 /**
  * Created by Oliwia on 24.05.2018.
@@ -139,8 +142,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
     private fun setFieldsForPartFromXMLFields(inventoryPart: InventoryPart) {
 
-        val queryTYPEID = "SELECT _ID FROM ITEMTYPES WHERE CODE = \"${inventoryPart.ITEMTYPE}\""
-        var cursorTYPEID = myDataBase!!.rawQuery(queryTYPEID, null)
+        val queryTYPEID = "SELECT _ID FROM ITEMTYPES WHERE CODE = ?"
+        var cursorTYPEID = myDataBase!!.rawQuery(queryTYPEID, arrayOf(inventoryPart.ITEMTYPE))
         var typeID = 0
         if (cursorTYPEID.moveToFirst()) {
             typeID = cursorTYPEID.getInt(0)
@@ -148,8 +151,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         }
         inventoryPart.typeID = typeID
 
-        val queryITEMID = "SELECT _ID FROM PARTS WHERE CODE = \"${inventoryPart.ITEMID}\""
-        var cursorITEMID = myDataBase!!.rawQuery(queryITEMID, null)
+        val queryITEMID = "SELECT _ID FROM PARTS WHERE CODE = ?"
+        var cursorITEMID = myDataBase!!.rawQuery(queryITEMID, arrayOf(inventoryPart.ITEMID))
         var itemID = 0
         if (cursorITEMID.moveToFirst()) {
             itemID = cursorITEMID.getInt(0)
@@ -159,8 +162,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
         inventoryPart.quantityInSet = inventoryPart.QTY
 
-        val queryCOLOR = "SELECT _ID FROM COLORS WHERE CODE = ${inventoryPart.COLOR}"
-        var cursorCOLOR = myDataBase!!.rawQuery(queryCOLOR, null)
+        val queryCOLOR = "SELECT _ID FROM COLORS WHERE CODE = ?"
+        var cursorCOLOR = myDataBase!!.rawQuery(queryCOLOR, arrayOf(inventoryPart.COLOR.toString()))
         var colorID = 0
         if (cursorCOLOR.moveToFirst()) {
             colorID = cursorCOLOR.getInt(0)
@@ -223,6 +226,35 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         myDataBase!!.delete("INVENTORY", "_ID = ?", arrayOf(inventory.id.toString()))
     }
 
+    /**
+     * Updates ACTIVE and LASTASCESSED fields in INVENTORIES table
+     */
+    private fun updateInventory(inventory: Inventory){
+        val values = ContentValues()
+        values.put("ACTIVE", inventory.active)
+        values.put("LASTACCCESSED", inventory.lastAccessed.time)
+        myDataBase!!.update("INVENTORIES", values, "_ID = ?", arrayOf(inventory.id.toString()))
+    }
+
+    /**
+     * Updates QUANTITYINSTORE field in INVENTORIESPARTS table
+     */
+
+    private fun updatePart(inventoryPart: InventoryPart){
+        val values = ContentValues()
+        values.put("QUANTITYINSTORE", inventoryPart.quantityInStore)
+        myDataBase!!.update("INVENTORIESPARTS", values, "_ID = ?", arrayOf(inventoryPart.id.toString()))
+    }
+
+    private fun updateParts(inventory: Inventory){
+        for(inventoryPart in inventory.parts){
+            updatePart(inventoryPart)
+        }
+    }
+    fun updateInventoryWithParts(inventory: Inventory){
+        updateInventory(inventory)
+        updateParts(inventory)
+    }
 
 
 
