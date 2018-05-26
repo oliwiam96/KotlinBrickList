@@ -23,8 +23,15 @@ import javax.xml.parsers.DocumentBuilderFactory
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
 import android.widget.ListView
+import java.io.File
 import java.io.IOException
 import java.io.InputStream
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.Transformer
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -191,8 +198,58 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
-    fun parseOutputXML(inventory: Inventory, type: String){
+    fun parseOutputXML(inventory: Inventory, type: String) {
         // TODO
+        var conditionStr = when (type) {
+            "ONLY NEW" -> "N"
+            "ONLY USED" -> "U"
+            else -> ""
+        }
+
+        val docBuilder: DocumentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+        val doc: Document = docBuilder.newDocument()
+        val rootElement: Element = doc.createElement("INVENTORY")
+        for (inventoryPart in inventory.parts) {
+            val howManyNeeded = inventoryPart.quantityInSet - inventoryPart.quantityInStore
+            if (howManyNeeded > 0) {
+                var item: Element = doc.createElement("ITEM")
+
+                var itemType: Element = doc.createElement("ITEMTYPE")
+                itemType.appendChild(doc.createTextNode(inventoryPart.ITEMTYPE))
+                item.appendChild(itemType)
+
+                var itemId: Element = doc.createElement("ITEMID")
+                itemId.appendChild(doc.createTextNode(inventoryPart.ITEMID))
+                item.appendChild(itemId)
+
+                var color: Element = doc.createElement("COLOR")
+                color.appendChild(doc.createTextNode(inventoryPart.COLOR.toString()))
+                item.appendChild(color)
+
+                var qtyFilled: Element = doc.createElement("QTYFILLED")
+                qtyFilled.appendChild(doc.createTextNode(howManyNeeded.toString()))
+                item.appendChild(qtyFilled)
+
+                if (conditionStr != "") {
+                    val condition: Element = doc.createElement("CONDITION")
+                    condition.appendChild(doc.createTextNode(conditionStr))
+                    item.appendChild(condition)
+                }
+                rootElement.appendChild(item)
+            }
+        }
+
+        doc.appendChild(rootElement)
+        val transformer: Transformer = TransformerFactory.newInstance().newTransformer()
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes")
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2")
+        val path = this.filesDir
+        val outDir = File(path, "Output")
+        outDir.mkdir()
+
+        val file = File(outDir, "WantedList.xml")
+
+        transformer.transform(DOMSource(doc), StreamResult(file))
 
     }
 

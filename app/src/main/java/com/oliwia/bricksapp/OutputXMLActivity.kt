@@ -35,7 +35,7 @@ class OutputXMLActivity : AppCompatActivity() {
 
     }
 
-    override fun finish() {
+    fun finishActivity(v: View){
         val dropdown = findViewById<Spinner>(R.id.mySpinner)
         var inventory = dropdown.selectedItem as Inventory
         val id = inventory.id
@@ -46,9 +46,7 @@ class OutputXMLActivity : AppCompatActivity() {
         data.putExtra("inventoryId", id)
         data.putExtra("type", type)
         setResult(Activity.RESULT_OK, data)
-        super.finish()
-    }
-    fun finishActivity(v: View){
         finish()
     }
+
 }
