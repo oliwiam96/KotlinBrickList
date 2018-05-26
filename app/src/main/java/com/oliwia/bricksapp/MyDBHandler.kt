@@ -306,7 +306,7 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
     /**
      * Updates QUANTITYINSTORE field in INVENTORIESPARTS table
      */
-    private fun updatePart(inventoryPart: InventoryPart) {
+    fun updatePart(inventoryPart: InventoryPart) {
         val values = ContentValues()
         values.put("QUANTITYINSTORE", inventoryPart.quantityInStore)
         myDataBase!!.update("INVENTORIESPARTS", values, "_ID = ?", arrayOf(inventoryPart.id.toString()))
