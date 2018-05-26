@@ -6,11 +6,11 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_add"
-            android:icon="@drawable/ic_menu_camera"
+            android:icon="@drawable/ic_add_circle_black_24dp"
             android:title="Add New Project" />
         <item
             android:id="@+id/nav_myProjects"
-            android:icon="@drawable/ic_menu_slideshow"
+            android:icon="@drawable/ic_view_list_black_24dp"
             android:title="My Projects" />
         <item
             android:id="@+id/nav_settings"
@@ -20,12 +20,12 @@
             <menu>
                 <item
                     android:id="@+id/nav_save"
-                    android:icon="@drawable/ic_menu_share"
-                    android:title="Save" />
+                    android:icon="@drawable/ic_sd_card_black_24dp"
+                    android:title="Save on SD card" />
                 <item
                     android:id="@+id/nav_send"
                     android:icon="@drawable/ic_menu_send"
-                    android:title="Send" />
+                    android:title="Send email/Save on Disk" />
             </menu>
         </item>
     </group>

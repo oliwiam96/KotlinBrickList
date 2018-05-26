@@ -22,6 +22,8 @@ import java.net.URL
 import javax.xml.parsers.DocumentBuilderFactory
 import android.graphics.BitmapFactory
 import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Environment
 import android.widget.ListView
 import java.io.File
 import java.io.IOException
@@ -42,6 +44,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     val REQUEST_CODE_NEW_PROJECT = 10002
     val REQUEST_CODE_DETAILS = 10003
     val REQUEST_CODE_SAVE = 10004
+    val REQUEST_CODE_SEND = 10005
     var prefix = "http://fcds.cs.put.poznan.pl/MyWeb/BL/"
     var extension = ".xml"
     var newInventoryNumber = ""
@@ -140,7 +143,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     var inventoryId = data.extras.getLong("inventoryId")
                     var type = data.extras.getString("type")
                     var inventory = dbHandler.getInventory(inventoryId)
-                    parseOutputXML(inventory, type)
+                    parseOutputXMLAndSave(inventory, type)
+                }
+            }
+        } else if ((requestCode == REQUEST_CODE_SEND)
+                && (resultCode == Activity.RESULT_OK)) {
+            if (data != null) {
+                if (data.hasExtra("inventoryId") && data.hasExtra("type")) {
+                    var inventoryId = data.extras.getLong("inventoryId")
+                    var type = data.extras.getString("type")
+                    var inventory = dbHandler.getInventory(inventoryId)
+                    parseOutputXMLAndSend(inventory, type)
                 }
             }
         }
@@ -190,6 +203,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             }
             R.id.nav_send -> {
+                val i = Intent(this, OutputXMLActivity::class.java)
+                startActivityForResult(i, REQUEST_CODE_SEND)
 
             }
         }
@@ -198,8 +213,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
-    fun parseOutputXML(inventory: Inventory, type: String) {
-        // TODO
+    fun parseOutputXMLAndSave(inventory: Inventory, type: String): File{
         var conditionStr = when (type) {
             "ONLY NEW" -> "N"
             "ONLY USED" -> "U"
@@ -243,16 +257,30 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val transformer: Transformer = TransformerFactory.newInstance().newTransformer()
         transformer.setOutputProperty(OutputKeys.INDENT, "yes")
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2")
-        val path = this.filesDir
-        val outDir = File(path, "Output")
+        val path = Environment.getExternalStorageDirectory().absolutePath
+        val outDir = File(path, "OutputMyBricksApp")
         outDir.mkdir()
 
         val file = File(outDir, "WantedList.xml")
-
         transformer.transform(DOMSource(doc), StreamResult(file))
-
+        return file
     }
 
+    fun parseOutputXMLAndSend(inventory: Inventory, type: String) {
+        val file = parseOutputXMLAndSave(inventory, type)
+
+        val pathUri = Uri.fromFile(file)
+        var emailIntent = Intent(Intent.ACTION_SEND)
+        // set the type to 'email'
+        emailIntent.setType("vnd.android.cursor.dir/email");
+        // the attachment
+        emailIntent.putExtra(Intent.EXTRA_STREAM, pathUri);
+        // the mail subject
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "WantedListBricksApp.xml");
+        startActivity(Intent.createChooser(emailIntent, "Send email/Save on Storage Access..."));
+
+
+    }
 
     private inner class ImageDownloader : AsyncTask<String, Int, String>() {
         val noImageURLString = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaopXXLbLGXDFcnzgeoPisO5gB98_YORuu3YqA8vYeryZ0-2Nyfw"

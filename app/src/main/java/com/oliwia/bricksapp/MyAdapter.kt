@@ -67,7 +67,7 @@ class MyAdapter(var parentView: View, val dbHandler: MyDBHandler, private val co
         listItemTextDateAccessed.text = "Last Accessed: " + simpleDateFormat.format(list[position].lastAccessed)
 
         //Handle buttons and add onClickListeners
-        val deleteBtn = view.findViewById<Button>(R.id.buttonDelete)
+        val deleteBtn = view.findViewById<ImageButton>(R.id.buttonDelete)
 
         deleteBtn.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View?) {
@@ -79,7 +79,7 @@ class MyAdapter(var parentView: View, val dbHandler: MyDBHandler, private val co
         })
 
 
-        val detailsBtn = view.findViewById<Button>(R.id.buttonDetails)
+        val detailsBtn = view.findViewById<ImageButton>(R.id.buttonDetails)
 
         detailsBtn.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View?) {

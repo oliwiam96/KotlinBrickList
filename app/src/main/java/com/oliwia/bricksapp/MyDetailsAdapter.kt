@@ -100,7 +100,7 @@ class MyDetailsAdapterAdapter(var inventoryId: Long, val dbHandler: MyDBHandler,
         listItemTextAmount.text = list[position].quantityInStore.toString() + "/" + list[position].quantityInSet.toString()
         val r = view.findViewById<ConstraintLayout>(R.id.myLayout)
         if (list[position].quantityInStore == list[position].quantityInSet) {
-            val colorInt = android.graphics.Color.rgb(88, 194, 37)
+            val colorInt = android.graphics.Color.rgb(170, 222, 122)
             r.setBackgroundColor(colorInt)
         } else {
             r.setBackgroundColor(0xFFFFFF)
