@@ -26,11 +26,11 @@
                 android:textSize="24sp" />
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/textViewDateAccessed"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="2"
-                android:text="Last Accessed:"
+                android:text="Date Accessed: "
                 android:textSize="12sp"
                 android:textStyle="italic" />
         </LinearLayout>

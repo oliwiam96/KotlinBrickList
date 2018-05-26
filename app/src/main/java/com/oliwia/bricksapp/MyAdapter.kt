@@ -10,30 +10,41 @@ import java.nio.file.Files.size
 import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.ListAdapter
+import java.text.SimpleDateFormat
 
 
 /**
  * Created by Oliwia on 25.05.2018.
  */
-class MyAdapter(var list: ArrayList<String>, private val context: Context) : BaseAdapter(), ListAdapter {
+class MyAdapter(private val context: Context) : BaseAdapter(), ListAdapter {
+    val dbHandler = MyDBHandler(context)
+    var list: MutableList<Inventory> = mutableListOf<Inventory>()
 
     init {
-        list.add("Raz")
-        list.add("Dwa2")
-        list.add("elo32")
+        dbHandler.createDataBaseIfDoesNotExist()
+        dbHandler.openDataBase()
+        list = dbHandler.getInventoriesList()
+        dbHandler.close()
+    }
+
+    fun addNewInventory(inventory: Inventory){
+        dbHandler.openDataBase()
+        dbHandler.addInventoryWithParts(inventory)
+        dbHandler.close()
+        list.add(inventory)
+        notifyDataSetChanged()
     }
 
     override fun getCount(): Int {
         return list.size
     }
 
-    override fun getItem(pos: Int): String {
+    override fun getItem(pos: Int): Inventory {
         return list[pos]
     }
 
     override fun getItemId(pos: Int): Long {
-        return list[pos].length.toLong()
-        //just return 0 if your list items do not have an Id variable.
+        return list[pos].id
     }
 
 
@@ -45,8 +56,12 @@ class MyAdapter(var list: ArrayList<String>, private val context: Context) : Bas
         }
 
         //Handle TextView and display string from your list
-        val listItemText = view!!.findViewById<TextView>(R.id.textViewName)
-        listItemText.text = list[position]
+        val listItemTextName = view!!.findViewById<TextView>(R.id.textViewName)
+        listItemTextName.text = list[position].name
+
+        val listItemTextDateAccessed = view!!.findViewById<TextView>(R.id.textViewDateAccessed)
+        val simpleDateFormat = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss")
+        listItemTextDateAccessed.text = "Date Accessed: " + simpleDateFormat.format(list[position].lastAccessed)
 
         //Handle buttons and add onClickListeners
         val deleteBtn = view.findViewById<Button>(R.id.buttonDelete)
@@ -54,6 +69,10 @@ class MyAdapter(var list: ArrayList<String>, private val context: Context) : Bas
         deleteBtn.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View?) {
                 //do something
+                var inventory = list[position]
+                dbHandler.openDataBase()
+                dbHandler.deleteInventoryWithParts(inventory)
+                dbHandler.close()
                 list.removeAt(position) //or some other task
                 notifyDataSetChanged()
             }

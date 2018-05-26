@@ -37,6 +37,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     var extension = ".xml"
     var newInventoryNumber = ""
     var newInventoryName = ""
+    var myAdapter:MyAdapter? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,14 +51,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
         nav_view.setNavigationItemSelectedListener(this)
 
-        var l = ArrayList<String>()
-        l.add("asdds")
-        l.add("dd")
-        var myAdapter = MyAdapter(l, this)
+        myAdapter = MyAdapter(this)
         val lView = findViewById<ListView>(R.id.myListView)
         lView.adapter = myAdapter
-
-        var x= 4*4
 
     }
 
@@ -241,11 +237,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 //helloView.text = "FAIL"
             } else {
                 //helloView.text = "SUCCESS"
-                val dbHandler = MyDBHandler(this@MainActivity)
-                dbHandler.createDataBaseIfDoesNotExist()
-                dbHandler.openDataBase()
-                dbHandler.addInventoryWithParts(inventory!!)
-                dbHandler.close()
+                myAdapter!!.addNewInventory(inventory!!)
                 ImageDownloader().execute(inventory!!.id.toString())
             }
         }

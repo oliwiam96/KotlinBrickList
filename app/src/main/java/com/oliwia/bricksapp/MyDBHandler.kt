@@ -289,7 +289,7 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
     fun deleteInventoryWithParts(inventory: Inventory) {
         myDataBase!!.delete("INVENTORIESPARTS", "INVENTORYID = ?", arrayOf(inventory.id.toString()))
-        myDataBase!!.delete("INVENTORY", "_ID = ?", arrayOf(inventory.id.toString()))
+        myDataBase!!.delete("INVENTORIES", "_ID = ?", arrayOf(inventory.id.toString()))
     }
 
     /**
