@@ -363,7 +363,7 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
                 inventory.active = cursor.getInt(2)
                 inventory.lastAccessed = Date(cursor.getLong(3))
 
-                setPartsForInventory(inventory)
+                //setPartsForInventory(inventory) // DON'T DO IT FOR BETTER PERFORMANCE
                 inventories.add(inventory)
                 cursor.moveToNext()
             }

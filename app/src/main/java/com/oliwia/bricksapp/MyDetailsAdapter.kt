@@ -64,7 +64,10 @@ class MyDetailsAdapterAdapter(var inventoryId: Long, val dbHandler: MyDBHandler,
         updatItemTextAmount(view, position)
 
         val listItemImage = view.findViewById<ImageView>(R.id.imageViewPart)
-        listItemImage.setImageBitmap(list[position].image)
+        if(list[position].image != null){
+            listItemImage.setImageBitmap(list[position].image)
+        }
+
 
         //Handle buttons and add onClickListeners
         val plusButton = view.findViewById<Button>(R.id.buttonPlus)
