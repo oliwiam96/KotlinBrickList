@@ -34,13 +34,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     val REQUEST_CODE_SETTINGS = 10001
     val REQUEST_CODE_NEW_PROJECT = 10002
     val REQUEST_CODE_DETAILS = 10003
+    val REQUEST_CODE_SAVE = 10004
     var prefix = "http://fcds.cs.put.poznan.pl/MyWeb/BL/"
     var extension = ".xml"
     var newInventoryNumber = ""
     var newInventoryName = ""
-    var myAdapter:MyAdapter? = null
+    var myAdapter: MyAdapter? = null
     val dbHandler = MyDBHandler(this)
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,14 +126,23 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     }
                 }
             }
+        } else if ((requestCode == REQUEST_CODE_SAVE)
+                && (resultCode == Activity.RESULT_OK)) {
+            if (data != null) {
+                if (data.hasExtra("inventoryId")) {
+                    var inventoryId = data.extras.getLong("inventoryId")
+                    var inventory = dbHandler.getInventory(inventoryId)
+                    parseOutputXML(inventory)
+                }
+            }
         }
+
         nav_view.setCheckedItem(R.id.nav_myProjects)
     }
 
 
     private fun startNewProjectActivity() {
         val i = Intent(this, NewProjectActivity::class.java)
-
         startActivityForResult(i, REQUEST_CODE_NEW_PROJECT)
     }
 
@@ -168,6 +177,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 startSettingsActivity()
             }
             R.id.nav_save -> {
+                val i = Intent(this, OutputXMLActivity::class.java)
+                startActivityForResult(i, REQUEST_CODE_SAVE)
 
             }
             R.id.nav_send -> {
@@ -179,10 +190,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
+    fun parseOutputXML(inventory: Inventory){
+        // TODO
+
+    }
+
 
     private inner class ImageDownloader : AsyncTask<String, Int, String>() {
         val noImageURLString = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaopXXLbLGXDFcnzgeoPisO5gB98_YORuu3YqA8vYeryZ0-2Nyfw"
-        var inventory:Inventory? = null
+        var inventory: Inventory? = null
 
         override fun onPreExecute() {
             super.onPreExecute()
@@ -197,7 +213,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             var inventoryID = p0[0]
             inventory = dbHandler.getInventory(inventoryID!!.toLong())
             for (inventoryPart in inventory!!.parts) {
-                if(!dbHandler.imageInDatabse(inventoryPart)){
+                if (!dbHandler.imageInDatabse(inventoryPart)) {
                     setImageForPart(inventoryPart)
                 }
 
@@ -212,9 +228,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             try {
                 bitmap = BitmapFactory.decodeStream(URL(URLString).content as InputStream)
             } catch (ex: IOException) {
-                    failed = true
+                failed = true
             }
-            if(!failed){
+            if (!failed) {
                 inventoryPart.image = bitmap
             }
 

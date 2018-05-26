@@ -16,4 +16,8 @@ class Inventory{
 
     var parts: MutableList<InventoryPart> = mutableListOf<InventoryPart>()
 
+    override fun toString(): String {
+        return name.toString()
+    }
+
 }

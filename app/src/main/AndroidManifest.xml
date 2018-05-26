@@ -33,7 +33,8 @@
         </activity>
         <activity android:name=".NewProjectActivity" />
         <activity android:name=".InventoryDetailsActivity" />
-        <activity android:name=".InventoryPartActivity"></activity>
+        <activity android:name=".InventoryPartActivity" />
+        <activity android:name=".OutputXMLActivity"></activity>
     </application>
 
 </manifest>

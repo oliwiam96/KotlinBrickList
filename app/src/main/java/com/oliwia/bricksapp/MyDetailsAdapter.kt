@@ -100,12 +100,12 @@ class MyDetailsAdapterAdapter(var inventoryId: Long, val dbHandler: MyDBHandler,
         listItemTextAmount.text = list[position].quantityInStore.toString() + "/" + list[position].quantityInSet.toString()
         val r = view.findViewById<ConstraintLayout>(R.id.myLayout)
         if (list[position].quantityInStore == list[position].quantityInSet) {
-            // TODO go down
             val colorInt = android.graphics.Color.rgb(88, 194, 37)
             r.setBackgroundColor(colorInt)
         } else {
             r.setBackgroundColor(0xFFFFFF)
         }
+        list.sortBy{it.quantityInStore - it.quantityInSet}
 
     }
 
