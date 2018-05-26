@@ -129,10 +129,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else if ((requestCode == REQUEST_CODE_SAVE)
                 && (resultCode == Activity.RESULT_OK)) {
             if (data != null) {
-                if (data.hasExtra("inventoryId")) {
+                if (data.hasExtra("inventoryId") && data.hasExtra("type")) {
                     var inventoryId = data.extras.getLong("inventoryId")
+                    var type = data.extras.getString("type")
                     var inventory = dbHandler.getInventory(inventoryId)
-                    parseOutputXML(inventory)
+                    parseOutputXML(inventory, type)
                 }
             }
         }
@@ -190,7 +191,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return true
     }
 
-    fun parseOutputXML(inventory: Inventory){
+    fun parseOutputXML(inventory: Inventory, type: String){
         // TODO
 
     }
