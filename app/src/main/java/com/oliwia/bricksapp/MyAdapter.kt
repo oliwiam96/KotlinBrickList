@@ -15,15 +15,13 @@ import android.widget.ListAdapter
 /**
  * Created by Oliwia on 25.05.2018.
  */
-class MyAdapter(list: ArrayList<String>, private val context: Context) : BaseAdapter(), ListAdapter {
-    private var list = ArrayList<String>(listOf("a", "bb", "ccc"))
+class MyAdapter(var list: ArrayList<String>, private val context: Context) : BaseAdapter(), ListAdapter {
 
-
-    /*init {
+    init {
         list.add("Raz")
         list.add("Dwa2")
         list.add("elo32")
-    }*/
+    }
 
     override fun getCount(): Int {
         return list.size
@@ -51,7 +49,7 @@ class MyAdapter(list: ArrayList<String>, private val context: Context) : BaseAda
         listItemText.text = list[position]
 
         //Handle buttons and add onClickListeners
-        val deleteBtn = view!!.findViewById<Button>(R.id.buttonDelete)
+        val deleteBtn = view.findViewById<Button>(R.id.buttonDelete)
 
         deleteBtn.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View?) {
