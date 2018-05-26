@@ -1,7 +1,15 @@
 package com.oliwia.bricksapp
 
 import android.content.Context
+import android.content.Intent
 import android.content.Context.LAYOUT_INFLATER_SERVICE
+import android.app.Activity
+import android.support.v4.app.ActivityCompat.startActivity
+import android.support.v7.app.AppCompatActivity
+
+
+import android.support.v4.app.ActivityCompat.startActivityForResult
+import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +23,8 @@ import java.util.*
 /**
  * Created by Oliwia on 25.05.2018.
  */
-class MyAdapter(var parentView: View, val dbHandler: MyDBHandler, private val context: Context) : BaseAdapter(), ListAdapter {
+class MyAdapter(var parentView: View, val dbHandler: MyDBHandler, private val context: Context,
+                val REQUEST_CODE_DETAILS: Int) : BaseAdapter(), ListAdapter {
     var list: MutableList<Inventory> = mutableListOf<Inventory>()
 
     init {
@@ -53,7 +62,7 @@ class MyAdapter(var parentView: View, val dbHandler: MyDBHandler, private val co
         val listItemTextName = view!!.findViewById<TextView>(R.id.textViewName)
         listItemTextName.text = list[position].name
 
-        val listItemTextDateAccessed = view!!.findViewById<TextView>(R.id.textViewDateAccessed)
+        val listItemTextDateAccessed = view.findViewById<TextView>(R.id.textViewDateAccessed)
         val simpleDateFormat = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss")
         listItemTextDateAccessed.text = "Last Accessed: " + simpleDateFormat.format(list[position].lastAccessed)
 
@@ -66,6 +75,17 @@ class MyAdapter(var parentView: View, val dbHandler: MyDBHandler, private val co
                 dbHandler.deleteInventoryWithParts(inventory)
                 list.removeAt(position) //or some other task
                 notifyDataSetChanged()
+            }
+        })
+
+
+        val detailsBtn = view.findViewById<Button>(R.id.buttonDetails)
+
+        detailsBtn.setOnClickListener(object : View.OnClickListener {
+            override fun onClick(v: View?) {
+                val i = Intent(context, InventoryDetailsActivity::class.java)
+                i.putExtra("inventoryId", list[position].id)
+                (context as Activity).startActivityForResult(i, REQUEST_CODE_DETAILS)
             }
         })
 

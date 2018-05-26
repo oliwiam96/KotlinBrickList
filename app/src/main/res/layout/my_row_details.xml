@@ -2,6 +2,7 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/myLayout"
     android:layout_width="match_parent"
     android:layout_height="100dp">
 
@@ -26,10 +27,11 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/textViewName"
+                android:id="@+id/textViewNamePart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="TextView"
+                android:textColor="@color/colorPrimaryDark"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
@@ -38,6 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="TextView"
+                android:textColor="@color/colorAccent"
                 android:textSize="18sp" />
 
             <TextView
@@ -62,7 +65,7 @@
                 android:gravity="center"
                 android:text="0/1"
                 android:textAllCaps="false"
-                android:textColor="@color/colorPrimaryDark"
+                android:textColor="@android:color/holo_blue_bright"
                 android:textSize="30sp" />
 
             <LinearLayout

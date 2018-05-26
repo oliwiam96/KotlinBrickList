@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.oliwia.bricksapp.InventoryDetails">
+    tools:context="com.oliwia.bricksapp.InventoryDetailsActivity">
 
     <ListView
+        android:id="@+id/myListViewDetails"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:layout_editor_absoluteX="8dp"

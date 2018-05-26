@@ -32,7 +32,8 @@
                 android:value="com.oliwia.bricksapp.MainActivity" />
         </activity>
         <activity android:name=".NewProjectActivity" />
-        <activity android:name=".InventoryDetails"></activity>
+        <activity android:name=".InventoryDetailsActivity" />
+        <activity android:name=".InventoryPartActivity"></activity>
     </application>
 
 </manifest>

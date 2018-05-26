@@ -33,12 +33,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     val REQUEST_CODE = 10000
     val REQUEST_CODE_SETTINGS = 10001
     val REQUEST_CODE_NEW_PROJECT = 10002
+    val REQUEST_CODE_DETAILS = 10003
     var prefix = "http://fcds.cs.put.poznan.pl/MyWeb/BL/"
     var extension = ".xml"
     var newInventoryNumber = ""
     var newInventoryName = ""
     var myAdapter:MyAdapter? = null
     val dbHandler = MyDBHandler(this)
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +56,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         dbHandler.createDataBaseIfDoesNotExist()
         dbHandler.openDataBase()
-        myAdapter = MyAdapter(findViewById(android.R.id.content), dbHandler, this)
+        myAdapter = MyAdapter(findViewById(android.R.id.content), dbHandler, this, REQUEST_CODE_DETAILS)
 
         val lView = findViewById<ListView>(R.id.myListView)
         lView.adapter = myAdapter
@@ -131,6 +133,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun startNewProjectActivity() {
         val i = Intent(this, NewProjectActivity::class.java)
+
         startActivityForResult(i, REQUEST_CODE_NEW_PROJECT)
     }
 
