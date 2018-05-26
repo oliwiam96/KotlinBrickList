@@ -33,7 +33,7 @@
                 android:layout_weight="1" />
 
             <Switch
-                android:id="@+id/switchArchived"
+                android:id="@+id/switchShowArchived"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_weight="1"

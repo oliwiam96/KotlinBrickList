@@ -38,6 +38,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     var newInventoryNumber = ""
     var newInventoryName = ""
     var myAdapter:MyAdapter? = null
+    val dbHandler = MyDBHandler(this)
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +52,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
         nav_view.setNavigationItemSelectedListener(this)
 
-        myAdapter = MyAdapter(this)
+        dbHandler.createDataBaseIfDoesNotExist()
+        dbHandler.openDataBase()
+        myAdapter = MyAdapter(findViewById(android.R.id.content), dbHandler, this)
+
         val lView = findViewById<ListView>(R.id.myListView)
         lView.adapter = myAdapter
 
@@ -151,14 +155,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             }
             R.id.nav_myProjects -> {
-                val dbHandler = MyDBHandler(this@MainActivity)
-                dbHandler.createDataBaseIfDoesNotExist()
-                dbHandler.openDataBase()
                 var list = dbHandler.getInventoriesList()
                 //helloView.text = list.size.toString()
 
                 //imageImage.setImageBitmap(list[0].parts[2].image)
-                dbHandler.close()
 
             }
             R.id.nav_settings -> {
@@ -178,19 +178,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
     private inner class ImageDownloader : AsyncTask<String, Int, String>() {
-        val dbHandler = MyDBHandler(this@MainActivity)
         val noImageURLString = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaopXXLbLGXDFcnzgeoPisO5gB98_YORuu3YqA8vYeryZ0-2Nyfw"
         var inventory:Inventory? = null
 
         override fun onPreExecute() {
             super.onPreExecute()
-            dbHandler.openDataBase()
         }
 
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
             dbHandler.saveImagesForInventory(inventory!!)
-            dbHandler.close()
         }
 
         override fun doInBackground(vararg p0: String?): String {

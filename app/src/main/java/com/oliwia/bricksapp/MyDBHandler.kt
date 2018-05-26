@@ -295,10 +295,11 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
     /**
      * Updates ACTIVE and LASTASCESSED fields in INVENTORIES table
      */
-    private fun updateInventory(inventory: Inventory) {
+    fun updateInventory(inventory: Inventory) {
+        inventory.lastAccessed = Date()
         val values = ContentValues()
         values.put("ACTIVE", inventory.active)
-        values.put("LASTACCCESSED", inventory.lastAccessed.time)
+        values.put("LASTACCESSED", inventory.lastAccessed.time)
         myDataBase!!.update("INVENTORIES", values, "_ID = ?", arrayOf(inventory.id.toString()))
     }
 
@@ -350,9 +351,8 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
         cursor.close()
     }
 
-    fun getInventoriesList(): MutableList<Inventory> {
+    private fun getIventoriesListQuery(query: String): MutableList<Inventory>{
         var inventories: MutableList<Inventory> = mutableListOf<Inventory>()
-        val query = "SELECT _ID, NAME, ACTIVE, LASTACCESSED FROM INVENTORIES"
         var cursor = myDataBase!!.rawQuery(query, null)
 
         if (cursor.moveToFirst()) {
@@ -371,6 +371,16 @@ class MyDBHandler(private val myContext: Context) : SQLiteOpenHelper(myContext, 
 
         cursor.close()
         return inventories
+    }
+
+    fun getInventoriesList(): MutableList<Inventory> {
+        val query = "SELECT _ID, NAME, ACTIVE, LASTACCESSED FROM INVENTORIES ORDER BY LASTACCESSED DESC"
+        return getIventoriesListQuery(query)
+    }
+
+    fun getInventoriesListOnlyActive(): MutableList<Inventory> {
+        val query = "SELECT _ID, NAME, ACTIVE, LASTACCESSED FROM INVENTORIES WHERE ACTIVE = 1 ORDER BY LASTACCESSED DESC"
+        return getIventoriesListQuery(query)
     }
 
     fun getInventory(id: Long): Inventory {

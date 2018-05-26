@@ -1,36 +1,29 @@
 package com.oliwia.bricksapp
 
 import android.content.Context
-import android.widget.TextView
 import android.content.Context.LAYOUT_INFLATER_SERVICE
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.*
 import java.nio.file.Files.size
-import android.widget.BaseAdapter
-import android.widget.Button
-import android.widget.ListAdapter
 import java.text.SimpleDateFormat
+import android.widget.CompoundButton
+import java.util.*
 
 
 /**
  * Created by Oliwia on 25.05.2018.
  */
-class MyAdapter(private val context: Context) : BaseAdapter(), ListAdapter {
-    val dbHandler = MyDBHandler(context)
+class MyAdapter(var parentView: View, val dbHandler: MyDBHandler, private val context: Context) : BaseAdapter(), ListAdapter {
     var list: MutableList<Inventory> = mutableListOf<Inventory>()
 
     init {
-        dbHandler.createDataBaseIfDoesNotExist()
-        dbHandler.openDataBase()
-        list = dbHandler.getInventoriesList()
-        dbHandler.close()
+        list = dbHandler.getInventoriesListOnlyActive()
     }
 
     fun addNewInventory(inventory: Inventory){
-        dbHandler.openDataBase()
         dbHandler.addInventoryWithParts(inventory)
-        dbHandler.close()
         list.add(inventory)
         notifyDataSetChanged()
     }
@@ -49,6 +42,7 @@ class MyAdapter(private val context: Context) : BaseAdapter(), ListAdapter {
 
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+        var inventory = list[position]
         var view: View? = convertView
         if (view == null) {
             val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -61,7 +55,7 @@ class MyAdapter(private val context: Context) : BaseAdapter(), ListAdapter {
 
         val listItemTextDateAccessed = view!!.findViewById<TextView>(R.id.textViewDateAccessed)
         val simpleDateFormat = SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss")
-        listItemTextDateAccessed.text = "Date Accessed: " + simpleDateFormat.format(list[position].lastAccessed)
+        listItemTextDateAccessed.text = "Last Accessed: " + simpleDateFormat.format(list[position].lastAccessed)
 
         //Handle buttons and add onClickListeners
         val deleteBtn = view.findViewById<Button>(R.id.buttonDelete)
@@ -69,14 +63,45 @@ class MyAdapter(private val context: Context) : BaseAdapter(), ListAdapter {
         deleteBtn.setOnClickListener(object : View.OnClickListener {
             override fun onClick(v: View?) {
                 //do something
-                var inventory = list[position]
-                dbHandler.openDataBase()
                 dbHandler.deleteInventoryWithParts(inventory)
-                dbHandler.close()
                 list.removeAt(position) //or some other task
                 notifyDataSetChanged()
             }
         })
+
+        val archivedSwitch = view.findViewById<Switch>(R.id.switchArchived)
+        archivedSwitch.isChecked = (inventory.active == 1)
+        archivedSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            // do something, the isChecked will be
+            // true if the switch is in the On position
+            run {
+                inventory = list[position] // WARNING!!! we must update inventory
+                val showArchivedSwitch = parentView.findViewById<Switch>(R.id.switchShowArchived)
+                if(isChecked){
+                    inventory.active = 1
+                } else{
+                    inventory.active = 0
+                }
+                dbHandler.updateInventory(inventory)
+                if(inventory.active == 0 && !showArchivedSwitch.isChecked){
+                    list.removeAt(position) //or some other task
+                }
+                notifyDataSetChanged()
+            }
+        }
+        val showArchivedSwitch = parentView.findViewById<Switch>(R.id.switchShowArchived)
+        showArchivedSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            run {
+                if(isChecked){
+                    list = dbHandler.getInventoriesList()
+                } else{
+                    list = dbHandler.getInventoriesListOnlyActive()
+                }
+                notifyDataSetChanged()
+            }
+        }
+
         return view
     }
+
 }
